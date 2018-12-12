@@ -19,26 +19,12 @@ namespace MailUp {
         }
     }
     public partial class MailUpClient {
-        public string LogonEndpoint { get; set; } = "https://services.mailup.com/Authorization/OAuth/LogOn";
-        public string AuthorizationEndpoint { get; set; } = "https://services.mailup.com/Authorization/OAuth/Authorization";
-        public string TokenEndpoint { get; set; } = "https://services.mailup.com/Authorization/OAuth/Token";
-        public string ConsoleEndpoint { get; set; } = "https://services.mailup.com/API/v1.1/Rest/ConsoleService.svc";
-        public string MailstatisticsEndpoint { get; set; } = "https://services.mailup.com/API/v1.1/Rest/MailStatisticsService.svc";
-        public string ClientId { set; get; }
-        public string ClientSecret { set; get; }
-        public string CallbackUri { set; get; }
-        public string AccessToken { set; get; }
-        public string RefreshToken { set; get; }
         public MailUpClient(string clientId, string clientSecret, string callbackUri) {
             MailUpClient mailUpClient = this;
             mailUpClient.ClientId = clientId;
             mailUpClient.ClientSecret = clientSecret;
             mailUpClient.CallbackUri = callbackUri;
             LoadToken();
-        }
-        public string GetLogOnUri() {
-            string url = LogonEndpoint + "?client_id=" + ClientId + "&client_secret=" + ClientSecret + "&response_type=code&redirect_uri=" + CallbackUri;
-            return url;
         }
         public void LogOn() {
             string url = GetLogOnUri();
@@ -48,10 +34,23 @@ namespace MailUp {
             MailUpClient mailUpClient = this;
             mailUpClient.RetrieveAccessToken(username, password);
         }
+        public string LogonEndpoint { get; set; } = "https://services.mailup.com/Authorization/OAuth/LogOn";
+        public string AuthorizationEndpoint { get; set; } = "https://services.mailup.com/Authorization/OAuth/Authorization";
+        public string TokenEndpoint { get; set; } = "https://services.mailup.com/Authorization/OAuth/Token";
+        public string ConsoleEndpoint { get; set; } = "https://services.mailup.com/API/v1.1/Rest/ConsoleService.svc";
+        public string MailstatisticsEndpoint { get; set; } = "https://services.mailup.com/API/v1.1/Rest/MailStatisticsService.svc";
+        public string ClientId { set; get; }
+        public string ClientSecret { set; get; }
+        public string CallbackUri { set; get; }
+        public string AccessToken { set; get; }
+        public string RefreshToken { set; get; }       
+        public string GetLogOnUri() {
+            return $"{LogonEndpoint}?client_id={ClientId}&client_secret={ClientSecret}&response_type=code&redirect_uri={CallbackUri}" ;
+        }    
         public string RetrieveAccessToken(string code) {
             int statusCode = 0;
             try {
-                HttpWebRequest wrLogon = (HttpWebRequest)WebRequest.Create(TokenEndpoint + "?code=" + code + "&grant_type=authorization_code");
+                HttpWebRequest wrLogon = (HttpWebRequest)WebRequest.Create($"{TokenEndpoint}?code={code}&grant_type=authorization_code");
                 wrLogon.AllowAutoRedirect = false;
                 wrLogon.KeepAlive = true;
                 HttpWebResponse retrieveResponse = (HttpWebResponse)wrLogon.GetResponse();
@@ -77,15 +76,15 @@ namespace MailUp {
             int statusCode = 0;
             try {
                 CookieContainer cookies = new CookieContainer();
-                string body = "client_id=" + ClientId + "&client_secret=" + ClientSecret + "&grant_type=password&username=" + login + "&password=" + password;
+                string body = $"client_id={ClientId}&client_secret={ClientSecret}&grant_type=password&username={login}&password={password}" ;
                 HttpWebRequest wrLogon = (HttpWebRequest)WebRequest.Create(TokenEndpoint);
                 wrLogon.CookieContainer = cookies;
                 wrLogon.AllowAutoRedirect = false;
                 wrLogon.KeepAlive = true;
                 wrLogon.Method = "POST";
                 wrLogon.ContentType = "application/x-www-form-urlencoded";
-                string auth = $"{this.ClientId}:{this.ClientSecret}";
-                wrLogon.Headers["Authorization"] = "Basic " + Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes(auth));
+                string auth = $"{ClientId}:{ClientSecret}";
+                wrLogon.Headers["Authorization"] = "Basic " + Convert.ToBase64String(Encoding.ASCII.GetBytes(auth));
                 byte[] byteArray = Encoding.UTF8.GetBytes(body);
                 wrLogon.ContentLength = byteArray.Length;
                 Stream dataStream = wrLogon.GetRequestStream();
@@ -160,7 +159,7 @@ namespace MailUp {
                 wrLogon.ContentType = GetContentTypeString(contentType);
                 wrLogon.ContentLength = 0;
                 wrLogon.Accept = GetContentTypeString(contentType);
-                wrLogon.Headers.Add("Authorization", "Bearer " + AccessToken);
+                wrLogon.Headers.Add("Authorization", $"Bearer {AccessToken}");
 
                 if (body != null && body != "") {
                     byte[] byteArray = Encoding.UTF8.GetBytes(body);

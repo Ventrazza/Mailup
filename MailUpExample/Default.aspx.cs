@@ -303,7 +303,7 @@ namespace MailUpExample {
                     // Image bytes can be obtained from file, database or any other source
                     WebClient wc = new WebClient();
                     byte[] imageBytes = wc.DownloadData("https://www.google.it/images/srpr/logo11w.png");
-                    string image = System.Convert.ToBase64String(imageBytes);
+                    string image = Convert.ToBase64String(imageBytes);
                     resourceURL = "" + mailUp.ConsoleEndpoint + "/Console/List/1/Images";
                     string imageRequest = "{\"Base64Data\":\"" + image + "\",\"Name\":\"Avatar\"}";
                     strResult = mailUp.CallMethod(resourceURL, "POST", imageRequest, MailUp.ContentType.Json);
